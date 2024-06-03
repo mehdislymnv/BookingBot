@@ -1,1 +1,1 @@
-awaiting_service_selection
+confirmation_pending

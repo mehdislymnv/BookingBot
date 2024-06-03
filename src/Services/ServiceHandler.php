@@ -86,6 +86,7 @@ class ServiceHandler
 
     public function displayServices(TelegramBot $telegram): void
     {
+        $this->logger->info("Starting displayServices function...");
         $services = $this->getServices();
         if (!empty($services)) {
             $buttons = [];
@@ -99,6 +100,7 @@ class ServiceHandler
                     'callback_data' => 'service_' . $service['id']
                 ]];
             }
+            $this->logger->info("Sending inline keyboard with services...");
             $telegram->sendInlineKeyboard("Mövcud servislər:", $buttons);
         } else {
             $this->logger->info("No services found...");
@@ -136,12 +138,15 @@ class ServiceHandler
         $driver->manage()->window()->maximize();
 
         $driver->get('https://sandbox.booknetic.com/sandboxes/sandbox-saas-6f49ae724d32a0cf3823/tutor2');
+        $this->logger->info("Navigated to URL...");
 
         $serviceCard = $driver->findElement(WebDriverBy::cssSelector('.booknetic_service_card[data-id="' . $serviceId . '"]'));
         $serviceCard->click();
+        $this->logger->info("Clicked on service card with ID: $serviceId");
 
         $wait = new WebDriverWait($driver, 10);
         $wait->until(WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_calendar_days')));
+        $this->logger->info("Calendar days loaded...");
 
         try {
             $targetMonth = date('F Y', strtotime($date));
@@ -150,6 +155,8 @@ class ServiceHandler
             while ($currentMonth !== $targetMonth) {
                 $nextMonthButton = $driver->findElement(WebDriverBy::cssSelector('.booknetic_next_month'));
                 $driver->executeScript("arguments[0].click();", [$nextMonthButton]);
+                $this->logger->info("Clicked on next month button");
+
                 $wait->until(WebDriverExpectedCondition::textToBePresentInElement(
                     WebDriverBy::cssSelector('.booknetic_month_name'),
                     $targetMonth
@@ -182,6 +189,8 @@ class ServiceHandler
             }
 
             $driver->quit();
+            $this->logger->info("Available times:" . json_encode($availableTimes));
+
             return $availableTimes;
         } catch (NoSuchElementException $e) {
             $this->logger->error("No such element: " . $e->getMessage());
@@ -226,21 +235,24 @@ class ServiceHandler
         $driver->manage()->window()->maximize();
 
         $driver->get('https://sandbox.booknetic.com/sandboxes/sandbox-saas-6f49ae724d32a0cf3823/tutor2');
+        $this->logger->info("Navigated to URL...");
 
         try {
-            $wait = new WebDriverWait($driver, 120);  // Gözləmə müd
+            $wait = new WebDriverWait($driver, 120);  // Gözləmə müddətini artırdıq
 
             $this->logger->info("Waiting for service card with ID: $serviceId");
             $serviceCard = $wait->until(
                 WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_service_card[data-id="' . $serviceId . '"]'))
             );
             $serviceCard->click();
+            $this->logger->info("Clicked on service card with ID: $serviceId");
 
             $this->logger->info("Waiting for calendar days to load");
             $wait->until(WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_calendar_days')));
             $this->logger->info("Calendar days loaded");
 
             // Select the date
+            $this->logger->info("User provided date: $date");
             $targetMonth = date('F Y', strtotime($date));
             $this->logger->info("Formatted target month: $targetMonth");
 
@@ -260,17 +272,21 @@ class ServiceHandler
                 $this->logger->info("Current month is now: $currentMonth");
             }
 
+            $dateSelector = '.booknetic_calendar_days[data-date="' . $date . '"]';
             $this->logger->info("Attempting to find date element with selector: $dateSelector");
 
             $dateElement = $wait->until(
                 WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector($dateSelector))
             );
             $driver->executeScript("arguments[0].click();", [$dateElement]);
+            $this->logger->info("Clicked on date: $date");
 
+            $this->logger->info("Waiting for next button to be present");
             $nextButton = $wait->until(
                 WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_next_step_btn'))
             );
             $driver->executeScript("arguments[0].click();", [$nextButton]);
+            $this->logger->info("Clicked on next button");
 
             $this->logger->info("Waiting for time elements to load");
             $wait->until(WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_time_element')));
@@ -279,12 +295,15 @@ class ServiceHandler
             // Select the time
             $timeStart = explode(' - ', $time)[0];
             $timeSelector = '.booknetic_time_element[data-time="' . $timeStart . '"]';
+            $this->logger->info("Attempting to find time element with selector: $timeSelector");
 
             $timeElement = $wait->until(
                 WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector($timeSelector))
             );
             $driver->executeScript("arguments[0].click();", [$timeElement]);
+            $this->logger->info("Clicked on time: $timeStart");
 
+            $this->logger->info("Waiting for next button to be present again");
             $nextButton = $wait->until(
                 WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_next_step_btn'))
             );
@@ -306,6 +325,8 @@ class ServiceHandler
             $phoneInput->sendKeys($userData['phone']);
             $this->logger->info("Form filled with user data");
 
+            // Submit the form
+            $this->logger->info("Waiting for submit button to be present");
             $submitButton = $wait->until(
                 WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_next_step_btn'))
             );
@@ -313,14 +334,18 @@ class ServiceHandler
             $driver->executeScript("arguments[0].click();", [$submitButton]);
 
             usleep(20000000);
-            $this->logger->info("Form submitted 20 s");
+            $this->logger->info("Form submitted 10 saniye gozledi");
 
+            // Wait for the new page to load
+            $this->logger->info("Waiting for the new page to load after form submission");
             $wait->until(WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_next_step_btn')));
 
-            $screenshotPath = '/var/www/test/src/user_data/screenshot_after_form.png';
+            // Ekran görüntüsünü çəkmək
+            $screenshotPath = '/var/www/test/src/user_data/screenshot_after_form.png';  // Faylın yadda saxlanılacağı yer
             $driver->takeScreenshot($screenshotPath);
             $this->logger->info("Screenshot saved at: " . $screenshotPath);
 
+            // Wait for the confirm booking button to be visible and click it
             $this->logger->info("Waiting for confirm booking button to be present");
             $confirmButton = $wait->until(
                 WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_confirm_booking_btn'))
@@ -328,16 +353,24 @@ class ServiceHandler
             $driver->executeScript("arguments[0].click();", [$confirmButton]);
             $this->logger->info("Clicked on confirm booking button");
 
-            $screenshotPathhh = '/var/www/test/src/user_data/screenshot_afterrr_form.png';
+            // Ekran görüntüsünü çəkmək
+            $screenshotPathhh = '/var/www/test/src/user_data/screenshot_afterrr_form.png';  // Faylın yadda saxlanılacağı yer
             $driver->takeScreenshot($screenshotPathhh);
             $this->logger->info("Screenshot saved at: " . $screenshotPathhh);
 
+            // Elementin mətnini əldə edin
             $buttonText = $confirmButton->getText();
             $this->logger->info("Confirm booking button text: " . $buttonText);
 
+            // Verify success message
             $this->logger->info("Waiting for success message to be present");
             $wait->until(WebDriverExpectedCondition::presenceOfElementLocated(WebDriverBy::cssSelector('.booknetic_appointment_finished_code')));
-            $this->logger->info("Successfully");
+
+            $this->logger->info("Attempting to find time element with selector: .booknetic_appointment_finished_code");
+
+            $this->logger->info("Fetching the body tag content...");
+
+            $this->logger->info("Booking confirmed successfully");
 
         } catch (NoSuchElementException $e) {
             $this->logger->error("No such element: " . $e->getMessage());

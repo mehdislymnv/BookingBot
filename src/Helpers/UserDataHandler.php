@@ -93,6 +93,7 @@ class UserDataHandler
         }
         return [];
     }
+
     public static function setUserData(int $chatId, array $userData): void
     {
         error_log("Setting user data for chat ID: $chatId to data: " . json_encode($userData));

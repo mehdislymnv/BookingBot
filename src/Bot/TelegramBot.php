@@ -198,11 +198,12 @@ class TelegramBot
         $message .= "Soyad: " . $userData['surname'] . "\n";
         $message .= "Email: " . $userData['email'] . "\n";
         $message .= "Nömrə: " . $userData['phone'] . "\n";
+        $message .= $userData['service_id'] . 'mxd' . $userData['time'] . 'mxd' . $userData['date'];
 
         $buttons = [
             [
                 [
-                    'text' => 'Rezerv edin',
+                    'text' => 'Rezerv edilsin',
                     'callback_data' => 'confirm_booking_' . $userData['service_id'] . '_' . urlencode($userData['time']) . '_' . $userData['date']
                 ]
             ]
