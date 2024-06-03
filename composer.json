@@ -1,0 +1,29 @@
+{
+  "name": "mxd/test",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "mxd",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+    "php": "^7.4 || ^8.0",
+    "guzzlehttp/guzzle": "^7.0",
+    "voku/simple_html_dom": "^4.8",
+    "ext-json": "*",
+    "php-webdriver/webdriver": "^1.15",
+    "vlucas/phpdotenv": "^5.6",
+    "monolog/monolog": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Bot\\": "src/Bot/",
+      "Helpers\\": "src/Helpers/",
+      "Services\\": "src/Services/",
+      "Exceptions\\": "src/Exceptions/"
+    }
+  }
+}
