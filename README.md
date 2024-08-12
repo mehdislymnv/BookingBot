@@ -5,8 +5,6 @@ Video link
 https://www.youtube.com/watch?si=ueu8dCzrotAp-MYc&v=qUpkgnrOdgA&feature=youtu.be
 
 
-# Qeyd:
-Hal-hazırda işlədiyim üçün və vaxt məhdudiyyətinə görə tapşırıqda bəzi boşluqlar var. Ən əsası təkminləşdirilməlidir.
 
 # Reservation Bot with PHP and Selenium
 
